@@ -1,0 +1,143 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+    --bg: #080b12;
+    --bg-secondary: #0d121c;
+    --surface: #111925;
+    --surface-hover: #162231;
+    --primary: #00ff9c;
+    --primary-dark: #00cc7d;
+    --text: #f1f5f9;
+    --muted: #8793a5;
+    --border: rgba(255,255,255,0.08);
+    --font-main: 'Inter', sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 90px;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-main);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button, input {
+    font: inherit;
+}
+
+::selection {
+    background: var(--primary);
+    color: #06110c;
+}
+
+.container {
+    width: min(1180px, calc(100% - 48px));
+    margin-inline: auto;
+}
+
+.section-label {
+    color: var(--primary);
+    font-family: var(--font-code);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+.logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 2px;
+}
+
+.logo-mark {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--primary);
+    color: #06110c;
+    font-weight: 900;
+    box-shadow: 0 0 20px rgba(0,255,156,.2);
+}
+
+.logo-dot {
+    color: var(--primary);
+}
+
+.primary-button,
+.secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 48px;
+    padding: 0 22px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 700;
+    transition: .25s ease;
+}
+
+.primary-button {
+    background: var(--primary);
+    color: #06110c;
+}
+
+.primary-button:hover {
+    background: #62ffc0;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0,255,156,.18);
+}
+
+.secondary-button {
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.secondary-button:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 6%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.footer .logo {
+    color: var(--text);
+}
+
+@media (max-width: 700px) {
+    .footer {
+        flex-direction: column;
+        text-align: center;
+    }
+}

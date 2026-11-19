@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ghurir - Interactive Web Security Sandbox. Explore web vulnerabilities through safe, interactive simulations.">
+    <title>Ghurir | Web Security Sandbox</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/home.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <a href="index.html" class="logo">
+            <span class="logo-mark">G</span>
+            GHURIR<span class="logo-dot">.</span>
+        </a>
+
+        <nav class="nav-links">
+            <a href="#home" class="active">Home</a>
+            <a href="#labs">Security Labs</a>
+            <a href="#about">About</a>
+        </nav>
+
+        <a href="#labs" class="nav-button">Explore Labs <span>↗</span></a>
+    </header>
+
+    <main>
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <div class="eyebrow">
+                    <span class="status-dot"></span>
+                    INTERACTIVE WEB SECURITY SANDBOX
+                </div>
+
+                <h1>
+                    Understand.<br>
+                    <span>Exploit.</span> Secure.
+                </h1>
+
+                <p class="hero-description">
+                    Explore real-world web security vulnerabilities through
+                    interactive simulations. Understand how attacks work,
+                    then learn how to stop them.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="#labs" class="primary-button">Explore Security Labs <span>→</span></a>
+                    <a href="#about" class="secondary-button">Learn More</a>
+                </div>
+
+                <div class="hero-meta">
+                    <span>01 / LEARN</span>
+                    <span>02 / SIMULATE</span>
+                    <span>03 / SECURE</span>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="terminal-window">
+                    <div class="terminal-header">
+                        <div class="terminal-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <span>ghurir@security-lab:~</span>
+                        <span class="terminal-status">ONLINE</span>
+                    </div>
+
+                    <div class="terminal-body">
+                        <p class="terminal-muted"># Initializing security environment...</p>
+                        <p><span class="terminal-green">ghurir@lab</span>:~$ system --status</p>
+                        <p class="terminal-success">[+] Environment initialized</p>
+                        <p class="terminal-success">[+] Vulnerability labs loaded</p>
+                        <p class="terminal-success">[+] Simulation engine ready</p>
+                        <br>
+                        <p><span class="terminal-green">ghurir@lab</span>:~$ <span class="cursor"></span></p>
+                    </div>
+
+                    <div class="terminal-footer">
+                        <span>GHURIR SECURITY ENVIRONMENT</span>
+                        <span>v1.0.0</span>
+                    </div>
+                </div>
+
+                <div class="visual-decoration decoration-one"></div>
+                <div class="visual-decoration decoration-two"></div>
+            </div>
+        </section>
+
+        <section class="labs-section" id="labs">
+            <div class="section-heading">
+                <div>
+                    <span class="section-label">01 — EXPLORE</span>
+                    <h2>Security <span>Labs</span></h2>
+                    <p>Three interactive labs. Three real-world security challenges.</p>
+                </div>
+                <span class="lab-count">03 LABS AVAILABLE</span>
+            </div>
+
+            <div class="labs-grid">
+                <a href="pages/cache-poisoning.html" class="lab-card">
+                    <div class="card-top">
+                        <span class="lab-number">LAB 01</span>
+                        <span class="card-arrow">↗</span>
+                    </div>
+                    <div class="lab-icon">◈</div>
+                    <h3>Web Cache<br>Poisoning</h3>
+                    <p>Discover how manipulated HTTP responses can affect other users through shared caches.</p>
+                    <div class="card-footer">
+                        <span>CACHING SECURITY</span>
+                        <span>EXPLORE LAB →</span>
+                    </div>
+                </a>
+
+                <a href="pages/oauth-linking.html" class="lab-card">
+                    <div class="card-top">
+                        <span class="lab-number">LAB 02</span>
+                        <span class="card-arrow">↗</span>
+                    </div>
+                    <div class="lab-icon">◎</div>
+                    <h3>OAuth Account<br>Linking Flaw</h3>
+                    <p>Understand how insecure identity verification can lead to unauthorized account access.</p>
+                    <div class="card-footer">
+                        <span>IDENTITY SECURITY</span>
+                        <span>EXPLORE LAB →</span>
+                    </div>
+                </a>
+
+                <a href="pages/file-upload.html" class="lab-card">
+                    <div class="card-top">
+                        <span class="lab-number">LAB 03</span>
+                        <span class="card-arrow">↗</span>
+                    </div>
+                    <div class="lab-icon">⌁</div>
+                    <h3>File Upload<br>Vulnerabilities</h3>
+                    <p>Explore file validation weaknesses and learn how to handle uploaded files securely.</p>
+                    <div class="card-footer">
+                        <span>FILE SECURITY</span>
+                        <span>EXPLORE LAB →</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <section class="about-section" id="about">
+            <span class="section-label">02 — OUR APPROACH</span>
+            <h2>See the vulnerability.<br><span>Understand the fix.</span></h2>
+            <p>
+                Every lab provides a safe simulation of a vulnerable implementation,
+                followed by a secure implementation. Test the same payload in both
+                modes and understand exactly why the fix works.
+            </p>
+
+            <div class="approach-grid">
+                <div class="approach-item">
+                    <span class="approach-number">01</span>
+                    <h3>Understand</h3>
+                    <p>Learn the vulnerability and identify the root cause in the code.</p>
+                </div>
+                <div class="approach-item">
+                    <span class="approach-number">02</span>
+                    <h3>Simulate</h3>
+                    <p>Run interactive payloads in a controlled environment.</p>
+                </div>
+                <div class="approach-item">
+                    <span class="approach-number">03</span>
+                    <h3>Secure</h3>
+                    <p>Apply the fix and verify that the same payload is blocked.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <a href="index.html" class="logo">GHURIR<span class="logo-dot">.</span></a>
+        <p>Interactive Web Security Sandbox</p>
+        <span>Built for learning. Designed for security.</span>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
