@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@400;500;600;700;800&family=Oxanium:wght@400;500;600;700;800&display=swap');
 
 :root {
     --bg: #080b12;
@@ -141,3 +141,165 @@ button, input {
         text-align: center;
     }
 }
+
+/* ==========================================
+   GHURIR — CYBER OPERATIONS VISUAL IDENTITY
+========================================== */
+
+:root {
+    --bg: #070b14;
+    --bg-secondary: #0a1220;
+    --surface: #0e1929;
+    --surface-hover: #14243a;
+    --primary: #00ffb2;
+    --primary-dark: #00d99a;
+    --cyan: #00d9ff;
+    --purple: #a855f7;
+    --text: #e8f3ff;
+    --muted: #8ca2b8;
+    --border: rgba(0, 217, 255, 0.14);
+    --font-display: 'Orbitron', sans-serif;
+    --font-tech: 'Oxanium', sans-serif;
+    --font-main: 'Inter', sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
+}
+
+body {
+    background-color: var(--bg);
+    background-image:
+        linear-gradient(rgba(0, 217, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 217, 255, 0.035) 1px, transparent 1px),
+        radial-gradient(ellipse at 15% 10%, rgba(0, 217, 255, 0.09), transparent 38%),
+        radial-gradient(ellipse at 85% 75%, rgba(168, 85, 247, 0.07), transparent 38%);
+    background-size: 42px 42px, 42px 42px, auto, auto;
+    background-attachment: fixed;
+}
+
+h1, h2, h3 {
+    text-wrap: balance;
+}
+
+.logo {
+    font-family: var(--font-display);
+    letter-spacing: 2px;
+}
+
+.logo-mark,
+.logo-icon {
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--cyan), var(--primary));
+    box-shadow:
+        0 0 12px rgba(0, 217, 255, 0.35),
+        0 0 28px rgba(0, 255, 178, 0.12);
+}
+
+.logo-dot {
+    color: var(--cyan);
+}
+
+.section-label,
+.eyebrow,
+.status-dot {
+    font-family: var(--font-code);
+}
+
+.primary-button,
+.nav-button {
+    background: linear-gradient(110deg, var(--primary), var(--cyan));
+    color: #041018;
+    border: 1px solid rgba(0, 217, 255, 0.5);
+    box-shadow: 0 0 18px rgba(0, 217, 255, 0.13);
+}
+
+.primary-button:hover,
+.nav-button:hover {
+    box-shadow:
+        0 0 16px rgba(0, 255, 178, 0.3),
+        0 0 35px rgba(0, 217, 255, 0.18);
+    transform: translateY(-3px);
+}
+
+.secondary-button {
+    border-color: rgba(0, 217, 255, 0.28);
+    background: rgba(10, 18, 32, 0.55);
+}
+
+.secondary-button:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: 0 0 18px rgba(0, 217, 255, 0.1);
+}
+
+::selection {
+    background: var(--cyan);
+    color: #061018;
+}
+
+:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .logo-mark {
+        animation: ghurirPulse 4s ease-in-out infinite;
+    }
+
+    @keyframes ghurirPulse {
+        0%, 100% {
+            box-shadow: 0 0 12px rgba(0, 217, 255, 0.25);
+        }
+        50% {
+            box-shadow:
+                0 0 18px rgba(0, 217, 255, 0.5),
+                0 0 32px rgba(0, 255, 178, 0.16);
+        }
+    }
+}
+
+/* ==========================================
+   FUTURISTIC CYBER TYPOGRAPHY
+========================================== */
+
+body,
+body * {
+    font-family: 'Oxanium', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: -0.5px;
+}
+
+.logo,
+.logo span,
+.navbar .logo {
+    font-family: 'Orbitron', sans-serif !important;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+    font-family: 'Oxanium', sans-serif;
+}
+
+.lab-label,
+code,
+pre,
+.terminal,
+.terminal *,
+.quiz-header,
+.upload-log,
+.upload-mode-status {
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+p, li, small, label {
+    font-family: 'Oxanium', sans-serif;
+    letter-spacing: 0.15px;
+}
+

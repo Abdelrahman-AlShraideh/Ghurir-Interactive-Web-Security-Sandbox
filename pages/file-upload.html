@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Interactive File Upload Security Lab">
+    <title>File Upload Vulnerabilities | GHURIR</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/lab.css">
+</head>
+
+<body>
+
+<header class="navbar">
+    <div class="nav-container">
+        <a href="../index.html" class="logo">
+            <span class="logo-icon">G</span>
+            GHURIR <span class="logo-dot">.</span>
+        </a>
+
+        <nav>
+            <a href="../index.html">Home</a>
+            <a href="../index.html#labs">Security Labs</a>
+            <a href="../index.html#about">About</a>
+        </nav>
+
+    </div>
+</header>
+
+<main class="lab-container">
+
+    <!-- HERO -->
+
+    <section class="lab-hero">
+        <span class="lab-label">SECURITY LAB 03</span>
+
+        <h1>File Upload <span>Vulnerabilities</span></h1>
+
+        <p>
+            Learn how insecure file upload validation can allow
+            dangerous files to enter an application.
+        </p>
+
+        <div class="lab-meta">
+            <span>OWASP: A04:2021 - Insecure Design</span>
+            <span>CWE-434</span>
+        </div>
+    </section>
+
+
+    <!-- UNDERSTANDING -->
+
+    <section class="lab-section">
+        <h2>01. Understanding the Vulnerability</h2>
+
+        <p>
+            Unrestricted File Upload occurs when an application
+            accepts files without properly validating their type,
+            content, or permitted extensions. An attacker may upload
+            a dangerous file that can affect the application or its users.
+        </p>
+
+        <div class="upload-explanation">
+            <h3>Why Is File Validation Important?</h3>
+            <p>
+                Checking only a filename extension is not sufficient.
+                Applications should validate allowed file types,
+                inspect file content, generate safe server-side names,
+                and store uploads in a non-executable location.
+            </p>
+        </div>
+    </section>
+
+
+    <!-- INTERACTIVE SIMULATION -->
+
+    <section class="lab-section" id="uploadSimulation">
+        <h2>02. Interactive Simulation</h2>
+
+        <p>
+            Choose a simulated file payload and observe how
+            vulnerable and fixed applications handle it.
+        </p>
+
+        <div class="upload-simulator">
+
+            <div class="upload-sim-header">
+                <h3>File Upload Simulator</h3>
+
+                <div class="upload-mode-switch">
+                    <button type="button"
+                            id="uploadVulnerableBtn"
+                            class="upload-mode-btn active">
+                        Vulnerable
+                    </button>
+
+                    <button type="button"
+                            id="uploadFixedBtn"
+                            class="upload-mode-btn">
+                        Fixed
+                    </button>
+                </div>
+            </div>
+
+            <div id="uploadModeStatus" class="upload-mode-status">
+                VULNERABLE MODE
+            </div>
+
+            <div class="upload-payload-panel">
+                <h4>Select a Simulated Payload</h4>
+
+                <div class="upload-payloads">
+
+                    <button type="button"
+                            class="upload-payload-btn"
+                            data-payload="profile">
+                        <strong>Payload 01</strong>
+                        <span>profile.jpg</span>
+                        <small>Normal image file</small>
+                    </button>
+
+                    <button type="button"
+                            class="upload-payload-btn"
+                            data-payload="script">
+                        <strong>Payload 02</strong>
+                        <span>shell.php</span>
+                        <small>Dangerous executable extension</small>
+                    </button>
+
+                    <button type="button"
+                            class="upload-payload-btn"
+                            data-payload="double">
+                        <strong>Payload 03</strong>
+                        <span>test.php.jpg</span>
+                        <small>Misleading double extension</small>
+                    </button>
+
+                </div>
+            </div>
+
+            <div class="upload-file-preview">
+                <span class="lab-label">SELECTED FILE</span>
+                <h3 id="uploadFileName">No file selected</h3>
+                <p id="uploadFileInfo">
+                    Select one of the simulated payloads above.
+                </p>
+
+                <button type="button"
+                        id="uploadRunBtn"
+                        class="primary-btn"
+                        disabled>
+                    Test Upload
+                </button>
+
+                <button type="button"
+                        id="uploadResetBtn"
+                        class="secondary-btn">
+                    Reset
+                </button>
+            </div>
+
+            <div class="upload-result" id="uploadResult" aria-live="polite">
+                <span id="uploadResultStatus">WAITING</span>
+                <h3 id="uploadResultTitle">No upload attempted</h3>
+                <p id="uploadResultMessage">
+                    Select a payload and press Test Upload.
+                </p>
+            </div>
+
+            <div class="upload-log">
+                <div class="upload-log-header">
+                    <span>SIMULATION LOG</span>
+                    <span id="uploadLogStatus">READY</span>
+                </div>
+
+                <div id="uploadLog" aria-live="polite">
+                    <p>[INFO] File upload simulator initialized.</p>
+                    <p>[INFO] No real files are uploaded or executed.</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ATTACK WALKTHROUGH -->
+
+    <section class="lab-section">
+        <span class="lab-label">INTERACTIVE LEARNING</span>
+        <h2>How Does the Attack Happen?</h2>
+
+        <p>
+            Follow the upload process and understand how weak
+            validation can allow a dangerous file to be accepted.
+        </p>
+
+        <div class="upload-walkthrough">
+
+            <div class="upload-flow">
+
+                <div class="upload-flow-node" id="uploadNodeAttacker">
+                    <strong>01</strong>
+                    <h4>Attacker</h4>
+                    <small>Prepares test.php.jpg</small>
+                </div>
+
+                <div class="upload-flow-node" id="uploadNodeSubmission">
+                    <strong>02</strong>
+                    <h4>File Upload</h4>
+                    <small>Submits the file</small>
+                </div>
+
+                <div class="upload-flow-node" id="uploadNodeValidation">
+                    <strong>03</strong>
+                    <h4>Weak Validation</h4>
+                    <small>Checks final extension</small>
+                </div>
+
+                <div class="upload-flow-node" id="uploadNodeStorage">
+                    <strong>04</strong>
+                    <h4>Unsafe Storage</h4>
+                    <small>Stores the file</small>
+                </div>
+
+                <div class="upload-flow-node" id="uploadNodeImpact">
+                    <strong>05</strong>
+                    <h4>Security Impact</h4>
+                    <small>Potential risks</small>
+                </div>
+
+            </div>
+
+            <div class="upload-step-panel">
+                <span id="uploadWalkProgress">STEP 1 / 5</span>
+                <h3 id="uploadWalkTitle">The Attacker Prepares a File</h3>
+                <p id="uploadWalkDescription">
+                    An attacker prepares a file with a dangerous extension.
+                </p>
+                <pre id="uploadWalkDetails">Waiting for walkthrough...</pre>
+            </div>
+
+            <div class="upload-walk-controls">
+                <button type="button"
+                        id="uploadWalkPrevious"
+                        class="secondary-btn"
+                        disabled>
+                    Previous
+                </button>
+
+                <button type="button"
+                        id="uploadWalkNext"
+                        class="primary-btn">
+                    Next Step
+                </button>
+
+                <button type="button"
+                        id="uploadWalkReset"
+                        class="secondary-btn">
+                    Reset
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- CODE COMPARISON -->
+
+    <section class="lab-section code-comparison-section"
+             id="uploadCodeComparison">
+
+        <span class="lab-label">UNDERSTAND THE CODE</span>
+        <h2>03. Vulnerable vs Fixed Implementation</h2>
+
+        <p>
+            Compare weak extension-based validation with a safer
+            file upload validation approach.
+        </p>
+
+        <div class="comparison-legend">
+            <span><i class="legend-dot vulnerable-dot"></i> Vulnerable Code</span>
+            <span><i class="legend-dot fixed-dot"></i> Security Fix</span>
+        </div>
+
+        <div class="code-comparison-grid">
+
+            <article class="comparison-card vulnerable-card">
+                <div class="comparison-card-header">
+                    <div>
+                        <span class="code-label">BEFORE FIX</span>
+                        <h3>Vulnerable Implementation</h3>
+                    </div>
+                    <span class="code-status">VULNERABLE</span>
+                </div>
+
+                <div class="code-window">
+                    <div class="code-window-bar">
+                        <span>upload.js</span>
+                        <span>JavaScript</span>
+                    </div>
+
+                    <pre class="comparison-code"><code><span class="code-line">function uploadFile(file) {</span>
+<span class="code-line">    const parts = file.name.toLowerCase().split(".");</span>
+<span class="code-line critical-line" tabindex="0" data-explanation="The application extracts only the final extension. For test.php.jpg, this becomes jpg, so the dangerous inner extension is ignored.">    const extension = parts.pop();</span>
+<span class="code-line">    const allowed = ["jpg", "jpeg", "png"];</span>
+<span class="code-line critical-line" tabindex="0" data-explanation="This allowlist checks only the final extension. A filename such as test.php.jpg passes because its last extension is jpg.">    if (!allowed.includes(extension)) {</span>
+<span class="code-line">        return "Upload rejected";</span>
+<span class="code-line">    }</span>
+<span class="code-line critical-line" tabindex="0" data-explanation="The original attacker-controlled filename is stored in a public directory without verifying the actual file content or preventing server-side execution.">    saveToPublicDirectory(file.name, file);</span>
+<span class="code-line">    return "Upload accepted";</span>
+<span class="code-line">}</span></code></pre>
+                </div>
+
+                <p class="code-hint">
+                    Select the red-highlighted line to inspect the vulnerability.
+                </p>
+            </article>
+
+
+            <article class="comparison-card fixed-card">
+                <div class="comparison-card-header">
+                    <div>
+                        <span class="code-label">AFTER FIX</span>
+                        <h3>Fixed Implementation</h3>
+                    </div>
+                    <span class="code-status">PROTECTED</span>
+                </div>
+
+                <div class="code-window">
+                    <div class="code-window-bar">
+                        <span>upload-fixed.js</span>
+                        <span>JavaScript</span>
+                    </div>
+
+                    <pre class="comparison-code"><code><span class="code-line">function uploadFile(file) {</span>
+<span class="code-line">    const parts = file.name.toLowerCase().split(".");</span>
+<span class="code-line">    const extension = parts.pop();</span>
+<span class="code-line">    const allowed = ["jpg", "jpeg", "png"];</span>
+<span class="code-line fix-line" tabindex="0" data-explanation="The application permits only explicitly approved image extensions.">    if (!allowed.includes(extension)) return "Rejected";</span>
+<span class="code-line fix-line" tabindex="0" data-explanation="The reported MIME type is checked against an image allowlist. MIME alone is not trustworthy because clients can spoof it.">    if (!["image/jpeg", "image/png"].includes(file.type)) return "Rejected";</span>
+<span class="code-line fix-line" tabindex="0" data-explanation="The server inspects the actual file signature to verify that the content matches the expected image format.">    if (!matchesFileSignature(file)) return "Rejected";</span>
+<span class="code-line fix-line" tabindex="0" data-explanation="The application rejects suspicious inner extensions such as php in test.php.jpg.">    if (hasDangerousInnerExtension(parts)) return "Rejected";</span>
+<span class="code-line fix-line" tabindex="0" data-explanation="A random server-generated filename prevents reliance on the original attacker-controlled filename.">    const safeName = generateRandomName(extension);</span>
+<span class="code-line fix-line" tabindex="0" data-explanation="Uploaded files are stored outside the web root so they cannot be directly requested as executable server-side files.">    storeOutsideWebRoot(safeName, file);</span>
+<span class="code-line fix-line" tabindex="0" data-explanation="The upload directory is configured to prevent execution of uploaded content.">    disableServerExecution(safeName);</span>
+<span class="code-line">    return "Upload accepted safely";</span>
+<span class="code-line">}</span></code></pre>
+                </div>
+
+                <p class="code-hint">
+                    Select the green-highlighted lines to understand the fix.
+                </p>
+            </article>
+
+        </div>
+
+        <div class="code-explanation" id="uploadCodeExplanation">
+            <span class="lab-label">CODE ANALYSIS</span>
+            <h3 id="uploadCodeExplanationTitle">Select a highlighted line</h3>
+            <p id="uploadCodeExplanationText">
+                Click any highlighted line in either implementation
+                to understand why it matters.
+            </p>
+        </div>
+
+    </section>
+
+
+    <!-- IMPACT -->
+
+    <section class="lab-section">
+        <h2>04. Impact</h2>
+
+        <p>
+            Dangerous file uploads may expose users to malicious content,
+            enable unauthorized file storage, or lead to server compromise
+            when uploaded files are executed by the hosting environment.
+            The actual impact depends on how the application stores and serves files.
+        </p>
+    </section>
+
+
+    <!-- SECURITY RECOMMENDATIONS -->
+
+    <section class="lab-section">
+        <h2>05. Security Recommendations</h2>
+
+        <ul class="upload-recommendations">
+            <li>Allow only explicitly permitted file types.</li>
+            <li>Validate file content and signatures, not only extensions.</li>
+            <li>Generate random server-side filenames.</li>
+            <li>Set strict file size limits.</li>
+            <li>Store uploaded files outside the web root when possible.</li>
+            <li>Prevent uploaded files from being executed by the server.</li>
+        </ul>
+    </section>
+
+
+    <!-- KNOWLEDGE CHECK -->
+
+    <section class="lab-section" id="uploadKnowledgeCheck">
+        <span class="lab-label">TEST YOUR KNOWLEDGE</span>
+        <h2>06. Knowledge Check</h2>
+
+        <p>
+            Test your understanding of File Upload Vulnerabilities.
+        </p>
+
+        <div class="quiz-container">
+            <div class="quiz-header">
+                <span id="uploadQuizProgress">QUESTION 1 / 3</span>
+                <span id="uploadQuizScore">SCORE: 0</span>
+            </div>
+
+            <div class="quiz-progress-track">
+                <div id="uploadQuizProgressBar"></div>
+            </div>
+
+            <div id="uploadQuizQuestionArea">
+                <h3 id="uploadQuizQuestion"></h3>
+                <div id="uploadQuizOptions"></div>
+                <div id="uploadQuizFeedback" aria-live="polite"></div>
+            </div>
+
+            <div class="quiz-controls">
+                <button type="button"
+                        id="uploadQuizNextBtn"
+                        disabled>
+                    Next Question
+                </button>
+
+                <button type="button"
+                        id="uploadQuizRestartBtn"
+                        hidden>
+                    Try Again
+                </button>
+            </div>
+
+            <div id="uploadQuizResult" hidden aria-live="polite"></div>
+        </div>
+    </section>
+
+
+    <!-- REFERENCES -->
+
+    <section class="lab-section">
+        <h2>07. References</h2>
+
+        <ul>
+            <li>
+                <a href="https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload"
+                   target="_blank" rel="noopener noreferrer">
+                    OWASP - Unrestricted File Upload
+                </a>
+            </li>
+
+            <li>
+                <a href="https://cwe.mitre.org/data/definitions/434.html"
+                   target="_blank" rel="noopener noreferrer">
+                    MITRE - CWE-434
+                </a>
+            </li>
+
+            <li>
+                <a href="https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html"
+                   target="_blank" rel="noopener noreferrer">
+                    OWASP - File Upload Cheat Sheet
+                </a>
+            </li>
+        </ul>
+    </section>
+
+</main>
+
+
+<footer class="footer">
+    <p>GHURIR Security Sandbox · Learn. Simulate. Secure.</p>
+</footer>
+
+<script src="../js/file-upload.js"></script>
+
+</body>
+</html>

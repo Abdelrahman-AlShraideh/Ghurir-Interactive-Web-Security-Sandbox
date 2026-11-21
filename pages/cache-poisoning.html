@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Interactive Web Cache Poisoning security lab">
+    <title>Web Cache Poisoning | GHURIR Security Lab</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/lab.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <a href="../index.html" class="logo">
+            <span class="logo-icon">G</span>
+            GHURIR <span class="logo-dot">.</span>
+        </a>
+
+        <nav class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="../index.html#labs">Security Labs</a>
+            <a href="../index.html#about">About</a>
+        </nav>
+
+    </header>
+
+    <main class="lab-container">
+
+        <section class="lab-hero">
+            <span class="lab-label">SECURITY LAB 01</span>
+            <h1>Web Cache <span>Poisoning</span></h1>
+            <p>
+                Learn how an improperly configured cache can store
+                an attacker-influenced response and serve it to other users.
+            </p>
+
+            <div class="lab-meta">
+                <span>OWASP: A05:2021 - Security Misconfiguration</span>
+                <span>CWE-444</span>
+            </div>
+        </section>
+
+        <section class="lab-section">
+            <h2>01. Understanding the Vulnerability</h2>
+            <p>
+                Web Cache Poisoning occurs when a cache stores a response
+                that was influenced by an input not included in its cache key.
+                Other users may then receive the poisoned response.
+            </p>
+        </section>
+
+        <section class="lab-section">
+            <h2>02. Interactive Simulation</h2>
+            <p>
+                Switch between vulnerable and fixed implementations,
+                then test the payloads below.
+            </p>
+
+            <div class="simulation-panel">
+                <div class="simulation-header">
+                    <span>Cache Simulation</span>
+
+                    <div class="mode-switch">
+                        <button id="vulnerableBtn" class="mode-btn active">
+                            Vulnerable
+                        </button>
+                        <button id="fixedBtn" class="mode-btn">
+                            Fixed
+                        </button>
+                    </div>
+                </div>
+
+                <div class="simulation-status">
+                    <span id="modeStatus">VULNERABLE MODE</span>
+                    <span id="cacheStatus">Cache: Empty</span>
+                </div>
+
+                <div class="payload-section">
+                    <h3>Choose an attack payload</h3>
+
+                    <div class="payload-buttons">
+                        <button class="payload-btn" data-payload="attacker.example">
+                            X-Forwarded-Host: attacker.example
+                        </button>
+
+                        <button class="payload-btn" data-payload="evil.example">
+                            X-Forwarded-Host: evil.example
+                        </button>
+
+                        <button class="payload-btn" data-payload="malicious.example">
+                            X-Forwarded-Host: malicious.example
+
+                        </button>
+                    </div>
+                </div>
+
+                <div class="simulation-actions">
+                    <button id="attackBtn" class="primary-btn">
+                        Send Attacker Request
+                    </button>
+
+                    <button id="victimBtn" class="secondary-btn">
+                        Simulate Victim Request
+                    </button>
+
+                    <button id="clearCacheBtn" class="secondary-btn">
+                        Clear Cache
+                    </button>
+                </div>
+
+                <div class="simulation-output">
+                    <h3>Simulation Output</h3>
+                    <div id="simulationLog" class="simulation-log">
+                        <p class="log-info">
+                            [INFO] Simulation ready. Select a payload to begin.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        
+<section class="lab-section walkthrough-section" id="attack-walkthrough">
+
+    <span class="lab-label">INTERACTIVE LEARNING</span>
+    <h2>How Does Cache Poisoning Happen?</h2>
+    <p>Follow an attack scenario and understand how an attacker can manipulate a cached response.</p>
+
+    <div class="walkthrough-panel">
+        <div class="walkthrough-topbar">
+            <span>ATTACK FLOW SIMULATOR</span>
+            <span id="walkthroughProgress">STEP 0 / 5</span>
+        </div>
+
+        <div class="walkthrough-mode-switch">
+            <span>SCENARIO MODE</span>
+            <div>
+                <button type="button" id="walkthroughVulnerableBtn"
+                        class="walkthrough-mode-btn active">Vulnerable</button>
+                <button type="button" id="walkthroughFixedBtn"
+                        class="walkthrough-mode-btn">Fixed</button>
+            </div>
+        </div>
+
+        <div class="attack-diagram">
+            <div class="attack-node" id="attackerNode">
+                <span class="node-icon">⚔</span>
+                <strong>Attacker</strong>
+                <small>Malicious Request</small>
+            </div>
+
+            <div class="attack-connection" id="connection1">
+                <span>HTTP Request</span><div></div>
+            </div>
+
+            <div class="attack-node" id="cacheNode">
+                <span class="node-icon">▣</span>
+                <strong>Web Cache</strong>
+                <small id="cacheNodeStatus">Empty</small>
+            </div>
+
+            <div class="attack-connection" id="connection2">
+                <span>Cache Miss</span><div></div>
+            </div>
+
+            <div class="attack-node" id="originNode">
+                <span class="node-icon">▤</span>
+                <strong>Origin Server</strong>
+                <small>Application</small>
+            </div>
+
+            <div class="attack-connection" id="connection3">
+                <span>Cached Response</span><div></div>
+            </div>
+
+            <div class="attack-node" id="victimNode">
+                <span class="node-icon">♙</span>
+                <strong>Victim</strong>
+                <small>Legitimate User</small>
+            </div>
+        </div>
+
+        <div class="walkthrough-details">
+            <span class="lab-label" id="walkthroughStepLabel">READY TO BEGIN</span>
+            <h3 id="walkthroughTitle">Understand the Attack</h3>
+            <p id="walkthroughDescription">Start the simulation to follow how an attacker poisons a web cache.</p>
+
+            <div class="http-example">
+                <div class="http-example-header">
+                    <span>HTTP REQUEST / RESPONSE</span>
+                </div>
+                <pre id="walkthroughHttp">Waiting for simulation...</pre>
+            </div>
+        </div>
+
+        <div class="walkthrough-controls">
+            <button id="previousStepBtn" class="secondary-btn" disabled>Previous</button>
+            <button id="nextStepBtn" class="primary-btn">Start Simulation</button>
+            <button id="resetWalkthroughBtn" class="secondary-btn">Reset</button>
+        </div>
+    </div>
+</section>
+
+
+<section class="lab-section code-comparison-section" id="code-comparison">
+
+    <span class="lab-label">UNDERSTAND THE CODE</span>
+    <h2>03. Vulnerable vs Fixed Implementation</h2>
+
+    <p>
+        Compare both implementations and select highlighted lines
+        to understand exactly where the vulnerability occurs and how it is fixed.
+    </p>
+
+    <div class="comparison-legend">
+        <span><i class="legend-dot vulnerable-dot"></i> Vulnerable Code</span>
+        <span><i class="legend-dot fixed-dot"></i> Security Fix</span>
+    </div>
+
+    <div class="code-comparison-grid">
+
+        <article class="comparison-card vulnerable-card">
+            <div class="comparison-card-header">
+                <div>
+                    <span class="code-label">BEFORE FIX</span>
+                    <h3>Vulnerable Implementation</h3>
+                </div>
+                <span class="code-status">VULNERABLE</span>
+            </div>
+
+            <div class="code-window">
+                <div class="code-window-bar">
+                    <span>cache.js</span>
+                    <span>JavaScript</span>
+                </div>
+                <pre class="comparison-code"><code><span class="code-line">function getCacheKey(request) {</span>
+<span class="code-line critical-line" data-explanation="The cache key uses only the URL. It does not distinguish requests that contain different response-affecting headers.">    return request.url;</span>
+<span class="code-line">}</span>
+<span class="code-line"></span>
+<span class="code-line">function buildResponse(request) {</span>
+<span class="code-line critical-line" data-explanation="The application trusts X-Forwarded-Host and uses its value to build the response. An attacker can influence this value.">    const host = request.headers["X-Forwarded-Host"];</span>
+<span class="code-line">    return { assetHost: host || "trusted.example" };</span>
+<span class="code-line">}</span>
+<span class="code-line"></span>
+<span class="code-line">function handleRequest(request) {</span>
+<span class="code-line">    const key = getCacheKey(request);</span>
+<span class="code-line">    if (cache.has(key)) return cache.get(key);</span>
+<span class="code-line">    const response = buildResponse(request);</span>
+<span class="code-line">    cache.set(key, response);</span>
+<span class="code-line">    return response;</span>
+<span class="code-line">}</span></code></pre>
+            </div>
+
+            <p class="code-hint">Select a red-highlighted line to inspect the vulnerability.</p>
+        </article>
+
+        <article class="comparison-card fixed-card">
+            <div class="comparison-card-header">
+                <div>
+                    <span class="code-label">AFTER FIX</span>
+                    <h3>Fixed Implementation</h3>
+                </div>
+                <span class="code-status">PROTECTED</span>
+            </div>
+
+            <div class="code-window">
+                <div class="code-window-bar">
+                    <span>cache-fixed.js</span>
+                    <span>JavaScript</span>
+                </div>
+                <pre class="comparison-code"><code><span class="code-line">function getCacheKey(request) {</span>
+<span class="code-line">    return request.url;</span>
+<span class="code-line">}</span>
+<span class="code-line"></span>
+<span class="code-line">function buildResponse(request) {</span>
+<span class="code-line fix-line" data-explanation="The application uses a trusted, server-controlled hostname instead of accepting the untrusted forwarding header.">    const host = "trusted.example";</span>
+<span class="code-line fix-line" data-explanation="The response now uses the trusted host value, so the attacker cannot influence this response through X-Forwarded-Host.">    return { assetHost: host };</span>
+<span class="code-line">}</span>
+<span class="code-line"></span>
+<span class="code-line">function handleRequest(request) {</span>
+<span class="code-line">    const key = getCacheKey(request);</span>
+<span class="code-line">    if (cache.has(key)) return cache.get(key);</span>
+<span class="code-line">    const response = buildResponse(request);</span>
+<span class="code-line">    cache.set(key, response);</span>
+<span class="code-line">    return response;</span>
+<span class="code-line">}</span></code></pre>
+            </div>
+
+            <p class="code-hint">Select a green-highlighted line to understand the fix.</p>
+        </article>
+
+    </div>
+
+    <div class="code-explanation" id="codeExplanation">
+        <span class="lab-label">CODE ANALYSIS</span>
+        <h3 id="codeExplanationTitle">Select a highlighted line</h3>
+        <p id="codeExplanationText">
+            Click any highlighted line in either implementation to see
+            why it matters.
+        </p>
+    </div>
+
+    <div class="cache-concepts">
+        <div>
+            <h3>Cache Key</h3>
+            <p>The value used by a cache to identify and retrieve a stored response.</p>
+        </div>
+        <div>
+            <h3>Unkeyed Input</h3>
+            <p>An input that influences the response but is not represented in the cache key.</p>
+        </div>
+    </div>
+
+</section>
+
+<section class="lab-section">
+    <h2>04. Impact</h2>
+    <p>
+        A poisoned cache may distribute attacker-controlled content
+        to multiple visitors. Depending on the application, this can
+        lead to phishing, content manipulation, or other attacks.
+    </p>
+</section>
+
+<section class="lab-section">
+    <h2>05. Security Recommendations</h2>
+    <ul>
+        <li>Include every response-affecting input in the cache key.</li>
+        <li>Validate and normalize untrusted headers before using them.</li>
+        <li>Disable shared caching for sensitive or user-specific responses.</li>
+        <li>Test cache behavior with different headers and request variations.</li>
+    </ul>
+</section>
+
+
+<section class="lab-section" id="cacheKnowledgeCheck">
+
+    <span class="lab-label">TEST YOUR KNOWLEDGE</span>
+    <h2>06. Knowledge Check</h2>
+    <p>Test your understanding of Web Cache Poisoning before completing this lab.</p>
+
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <span id="quizProgress">QUESTION 1 / 3</span>
+            <span id="quizScore">SCORE: 0</span>
+        </div>
+
+        <div class="quiz-progress-track">
+            <div id="quizProgressBar"></div>
+        </div>
+
+        <div id="quizQuestionArea">
+            <h3 id="quizQuestion"></h3>
+            <div id="quizOptions"></div>
+            <div id="quizFeedback" aria-live="polite"></div>
+        </div>
+
+        <div class="quiz-controls">
+            <button type="button" id="quizNextBtn" disabled>Next Question</button>
+            <button type="button" id="quizRestartBtn" hidden>Try Again</button>
+        </div>
+
+        <div id="quizResult" hidden aria-live="polite"></div>
+    </div>
+</section>
+
+<section class="lab-section">
+            <h2>07. References</h2>
+            <ul>
+                <li>
+                    <a href="https://portswigger.net/web-security/web-cache-poisoning"
+                       target="_blank" rel="noopener noreferrer">
+                        PortSwigger - Web Cache Poisoning
+                    </a>
+                </li>
+                <li>
+                    <a href="https://cwe.mitre.org/data/definitions/444.html"
+                       target="_blank" rel="noopener noreferrer">
+                        MITRE - CWE-444
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <p>GHURIR Security Sandbox · Learn. Simulate. Secure.</p>
+    </footer>
+
+    <script src="../js/cache-poisoning.js"></script>
+</body>
+</html>

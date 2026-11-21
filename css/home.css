@@ -484,3 +484,171 @@
         transform: none;
     }
 }
+
+/* ==========================================
+   CYBERSECURITY LAB CARDS — GHURIR
+========================================== */
+
+.lab-card {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: 340px;
+    background:
+        linear-gradient(145deg, rgba(0, 255, 156, 0.045), transparent 42%),
+        linear-gradient(145deg, #101a28, #080e18 75%);
+    border: 1px solid rgba(0, 255, 156, 0.16);
+    border-radius: 10px;
+    transition:
+        transform 0.35s ease,
+        border-color 0.35s ease,
+        box-shadow 0.35s ease;
+}
+
+/* Subtle technical grid */
+.lab-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image:
+        linear-gradient(rgba(0, 255, 156, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 156, 0.035) 1px, transparent 1px);
+    background-size: 24px 24px;
+    opacity: 0.45;
+    mask-image: linear-gradient(to bottom, black, transparent 85%);
+}
+
+/* Moving glow */
+.lab-card::after {
+    content: "";
+    position: absolute;
+    top: -100%;
+    left: -60%;
+    width: 45%;
+    height: 300%;
+    z-index: -1;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(0, 255, 156, 0.07),
+        transparent
+    );
+    transform: rotate(25deg);
+    transition: left 0.7s ease;
+}
+
+.lab-card:hover {
+    transform: translateY(-9px);
+    border-color: rgba(0, 255, 156, 0.65);
+    box-shadow:
+        0 0 12px rgba(0, 255, 156, 0.08),
+        0 15px 40px rgba(0, 0, 0, 0.4),
+        inset 0 0 25px rgba(0, 255, 156, 0.035);
+}
+
+.lab-card:hover::after {
+    left: 130%;
+}
+
+.lab-card .lab-number {
+    color: #00ff9c;
+    letter-spacing: 2px;
+}
+
+.lab-card .card-arrow {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(0, 255, 156, 0.2);
+    border-radius: 6px;
+    background: rgba(0, 255, 156, 0.04);
+    transition: 0.3s ease;
+}
+
+.lab-card:hover .card-arrow {
+    color: #07120e;
+    background: #00ff9c;
+    box-shadow: 0 0 18px rgba(0, 255, 156, 0.35);
+    transform: translate(3px, -3px);
+}
+
+.lab-card .lab-icon {
+    position: relative;
+    width: 54px;
+    height: 54px;
+    margin: 30px 0 22px;
+    font-size: 27px;
+    border: 1px solid rgba(0, 255, 156, 0.28);
+    background: rgba(0, 255, 156, 0.07);
+    box-shadow: 0 0 18px rgba(0, 255, 156, 0.06);
+    transition: 0.35s ease;
+}
+
+.lab-card:hover .lab-icon {
+    color: #00ff9c;
+    border-color: #00ff9c;
+    background: rgba(0, 255, 156, 0.13);
+    box-shadow: 0 0 24px rgba(0, 255, 156, 0.18);
+    transform: scale(1.08);
+}
+
+.lab-card h3 {
+    transition: color 0.3s ease;
+}
+
+.lab-card:hover h3 {
+    color: #ffffff;
+}
+
+.lab-card .card-footer {
+    border-top-color: rgba(0, 255, 156, 0.15);
+}
+
+.lab-card .card-footer span:last-child {
+    letter-spacing: 1px;
+    transition: letter-spacing 0.3s ease;
+}
+
+.lab-card:hover .card-footer span:last-child {
+    letter-spacing: 1.5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lab-card,
+    .lab-card::after,
+    .lab-card .lab-icon,
+    .lab-card .card-arrow {
+        transition: none;
+    }
+}
+
+
+/* Navbar CTA — improve text contrast */
+.nav-button {
+    color: #041018 !important;
+    font-weight: 800;
+    text-shadow: none;
+}
+
+.nav-button span {
+    color: #041018 !important;
+}
+
+/* Keep Navbar CTA readable on hover */
+.nav-button:hover,
+.nav-button:focus-visible {
+    background: linear-gradient(110deg, #00ffb2, #00d9ff) !important;
+    color: #041018 !important;
+    border-color: #00d9ff !important;
+    text-shadow: none !important;
+    box-shadow:
+        0 0 16px rgba(0, 255, 178, 0.35),
+        0 0 30px rgba(0, 217, 255, 0.2) !important;
+}
+
+.nav-button:hover span,
+.nav-button:focus-visible span {
+    color: #041018 !important;
+}

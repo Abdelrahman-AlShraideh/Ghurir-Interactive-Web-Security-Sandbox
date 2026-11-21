@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Interactive OAuth Account Linking Security Lab">
+    <title>OAuth Account Linking | GHURIR</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/lab.css">
+</head>
+
+<body>
+
+<header class="navbar">
+    <a href="../index.html" class="logo">
+            <span class="logo-icon">G</span>
+            GHURIR <span class="logo-dot">.</span>
+        </a>
+
+    <nav class="nav-links">
+        <a href="../index.html">Home</a>
+        <a href="../index.html#labs">Security Labs</a>
+        <a href="../index.html#about">About</a>
+    </nav>
+
+</header>
+
+<main class="lab-container">
+
+    <!-- HERO -->
+
+    <section class="lab-hero">
+        <span class="lab-label">SECURITY LAB 02</span>
+
+        <h1>OAuth Account <span>Linking Flaw</span></h1>
+
+        <p>
+            Learn how insecure account linking can allow an attacker
+            to associate an external identity with another user's account.
+        </p>
+
+        <div class="lab-meta">
+            <span>OWASP: A07:2021 - Identification and Authentication Failures</span>
+            <span>CWE-287</span>
+        </div>
+    </section>
+
+
+    <!-- UNDERSTANDING -->
+
+    <section class="lab-section">
+        <h2>01. Understanding the Vulnerability</h2>
+
+        <div class="oauth-understanding-intro">
+            <h3>What is Account Linking?</h3>
+            <p>
+                Account linking allows users to connect an external identity,
+                such as Google, to an existing account. A vulnerability occurs
+                when the application links that identity without properly
+                verifying ownership and authorization.
+            </p>
+        </div>
+
+        <div class="oauth-scenario">
+            <div class="oauth-scenario-heading">
+                <span class="lab-label">THE VULNERABILITY SCENARIO</span>
+                <h3>How Does the Attack Happen?</h3>
+                <p>
+                    Consider an application that automatically links external
+                    identities based only on matching email addresses.
+                </p>
+            </div>
+
+            <div class="oauth-scenario-grid">
+                <article class="oauth-scenario-card">
+                    <span class="scenario-number">01</span>
+                    <h4>Existing Victim Account</h4>
+                    <p>The victim already has an account in the application.</p>
+                    <code>victim@example.com</code>
+                </article>
+
+                <article class="oauth-scenario-card">
+                    <span class="scenario-number">02</span>
+                    <h4>Attacker's Identity</h4>
+                    <p>
+                        The attacker presents an external identity containing
+                        the victim's email address.
+                    </p>
+                    <code>email_verified: false</code>
+                </article>
+
+                <article class="oauth-scenario-card">
+                    <span class="scenario-number">03</span>
+                    <h4>Unsafe Account Lookup</h4>
+                    <p>
+                        The application searches for an account using the
+                        email address alone.
+                    </p>
+                    <code>findUserByEmail(email)</code>
+                </article>
+
+                <article class="oauth-scenario-card scenario-danger">
+                    <span class="scenario-number">04</span>
+                    <h4>Unauthorized Linking</h4>
+                    <p>
+                        The application links the attacker's external identity
+                        to the victim's account without the victim's approval.
+                    </p>
+                    <code>Account linked incorrectly</code>
+                </article>
+            </div>
+        </div>
+
+        <div class="oauth-root-cause">
+            <span class="lab-label">ROOT CAUSE</span>
+            <h3>Why Does This Happen?</h3>
+            <p>
+                The application treats a matching email address as proof
+                of ownership. However, the identity token can have a valid
+                signature while the email remains unverified. The application
+                must also require authentication to the existing account
+                and explicit approval from its owner.
+            </p>
+        </div>
+    </section>
+
+
+    <!-- SIMULATION -->
+
+    <section class="lab-section" id="oauthSimulation">
+        <h2>02. Interactive Simulation</h2>
+
+        <p>
+            Switch between vulnerable and fixed implementations,
+            then simulate an account-linking attempt.
+        </p>
+
+        <div class="oauth-simulator">
+
+            <div class="oauth-sim-header">
+                <h3>Account Linking Simulator</h3>
+
+                <div class="oauth-mode-switch">
+                    <button type="button"
+                            id="oauthVulnerableBtn"
+                            class="oauth-mode-btn active">
+                        Vulnerable
+                    </button>
+
+                    <button type="button"
+                            id="oauthFixedBtn"
+                            class="oauth-mode-btn">
+                        Fixed
+                    </button>
+                </div>
+            </div>
+
+            <div class="oauth-mode-status" id="oauthModeStatus">
+                VULNERABLE MODE
+            </div>
+
+            <div class="oauth-scenario">
+
+                <div class="oauth-user-card">
+                    <span>EXISTING ACCOUNT</span>
+                    <div class="oauth-avatar">V</div>
+                    <h4>Victim User</h4>
+                    <p>victim@example.com</p>
+                    <small id="victimAccountStatus">Account not linked</small>
+                </div>
+
+                <div class="oauth-provider-card">
+                    <span>EXTERNAL IDENTITY</span>
+                    <div class="oauth-provider-icon">ID</div>
+                    <h4>External Provider</h4>
+                    <p id="externalEmail">victim@example.com</p>
+                    <small id="externalIdentityStatus">Unverified identity</small>
+                </div>
+
+            </div>
+
+            <div class="oauth-input-panel">
+                <h4>Simulated Identity Claims</h4>
+
+                <div class="oauth-claim">
+                    <label>Email</label>
+                    <code id="claimEmail">victim@example.com</code>
+                </div>
+
+                <div class="oauth-claim">
+                    <label>Email Verified</label>
+                    <code id="claimVerified">false</code>
+                </div>
+
+                <div class="oauth-claim">
+                    <label>Issuer</label>
+                    <code>https://identity.example</code>
+                </div>
+
+                <div class="oauth-claim">
+                    <label>Subject</label>
+                    <code>external-user-123</code>
+                </div>
+            </div>
+
+            <div class="oauth-attack-breakdown">
+                <div class="oauth-breakdown-header">
+                    <span>ATTACK BREAKDOWN</span>
+                    <span id="oauthAttackProgress">READY</span>
+                </div>
+                <h4 id="oauthAttackTitle">Understand the account-linking flaw</h4>
+                <p id="oauthAttackDescription">
+                    Start the simulation to follow the attack one step at a time.
+                </p>
+                <div class="oauth-attack-detail" id="oauthAttackDetail">
+                    <span>WHAT TO NOTICE</span>
+                    <code>Who controls the external identity?</code>
+                </div>
+            </div>
+
+            <div class="oauth-actions">
+                <button type="button" id="oauthAttackBtn">
+                    Simulate Account Linking
+                </button>
+
+                <button type="button" id="oauthResetBtn">
+                    Reset Simulation
+                </button>
+            </div>
+
+            <div class="oauth-output">
+                <div class="oauth-output-header">
+                    <span>SIMULATION OUTPUT</span>
+                    <span id="oauthResultStatus">WAITING</span>
+                </div>
+
+                <div id="oauthLog" aria-live="polite">
+                    <p>[INFO] OAuth Account Linking simulator initialized.</p>
+                    <p>Select a mode and simulate an account-linking attempt.</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ATTACK WALKTHROUGH -->
+
+    <section class="lab-section">
+        <span class="lab-label">INTERACTIVE LEARNING</span>
+        <h2>How Does Account Linking Abuse Happen?</h2>
+
+        <p>
+            Follow the account-linking scenario and understand
+            how an application can incorrectly associate identities.
+        </p>
+
+        <div class="oauth-walkthrough" id="oauthWalkthrough">
+
+            <div class="oauth-walkthrough-header">
+                <span>ACCOUNT LINKING ATTACK FLOW</span>
+                <span id="oauthWalkProgress">STEP 0 / 5</span>
+            </div>
+
+            <div class="oauth-walk-mode-switch">
+                <button type="button"
+                        id="oauthWalkVulnerableBtn"
+                        class="oauth-walk-mode-btn active">
+                    Vulnerable
+                </button>
+                <button type="button"
+                        id="oauthWalkFixedBtn"
+                        class="oauth-walk-mode-btn">
+                    Fixed
+                </button>
+            </div>
+
+            <div class="oauth-flow">
+                <div class="oauth-flow-node" id="oauthAttackerNode">
+                    <span>⚔</span>
+                    <strong>Attacker</strong>
+                    <small>External Identity</small>
+                </div>
+
+                <div class="oauth-flow-line" id="oauthLine1"></div>
+
+                <div class="oauth-flow-node" id="oauthAppNode">
+                    <span>▣</span>
+                    <strong>Application</strong>
+                    <small>Account Linking</small>
+                </div>
+
+                <div class="oauth-flow-line" id="oauthLine2"></div>
+
+                <div class="oauth-flow-node" id="oauthProviderNode">
+                    <span>▤</span>
+                    <strong>Identity Provider</strong>
+                    <small>Identity Claims</small>
+                </div>
+
+                <div class="oauth-flow-line" id="oauthLine3"></div>
+
+                <div class="oauth-flow-node" id="oauthVictimNode">
+                    <span>♙</span>
+                    <strong>Victim</strong>
+                    <small>Existing Account</small>
+                </div>
+            </div>
+
+            <div class="oauth-step-panel">
+                <span id="oauthWalkLabel">READY TO BEGIN</span>
+                <h3 id="oauthWalkTitle">Understand the Attack</h3>
+                <p id="oauthWalkDescription">
+                    Start the walkthrough to see how unsafe account linking works.
+                </p>
+
+                <pre id="oauthWalkDetails">Waiting for simulation...</pre>
+            </div>
+
+            <div class="oauth-walk-controls">
+                <button type="button" id="oauthWalkPrevious" disabled>
+                    Previous
+                </button>
+
+                <button type="button" id="oauthWalkNext">
+                    Start Simulation
+                </button>
+
+                <button type="button" id="oauthWalkReset">
+                    Reset
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- VULNERABLE IMPLEMENTATION -->
+
+    <section class="lab-section" id="oauthCodeComparison">
+        <h2>03. Vulnerable vs Fixed Implementation</h2>
+
+        <p>
+            Compare an unsafe account-linking implementation
+            with a safer approach that verifies identity and
+            requires authorization from the existing account owner.
+        </p>
+
+        <div class="comparison-legend">
+            <span><i class="legend-dot vulnerable-dot"></i> Vulnerable Code</span>
+            <span><i class="legend-dot fixed-dot"></i> Security Fix</span>
+        </div>
+
+        <div class="code-comparison-grid">
+
+            <article class="comparison-card vulnerable-card">
+                <div class="comparison-card-header">
+                    <div>
+                        <span class="code-label">BEFORE FIX</span>
+                        <h3>Vulnerable Implementation</h3>
+                    </div>
+                    <span class="code-status">VULNERABLE</span>
+                </div>
+
+                <div class="code-window">
+                    <div class="code-window-bar">
+                        <span>account-linking.js</span>
+                        <span>JavaScript</span>
+                    </div>
+                    <pre class="comparison-code"><code><span class="code-line">function linkAccount(user, identity) {</span>
+<span class="code-line critical-line" data-explanation="The application takes the email claim from the external identity. At this point, the email has not been proven to belong to the person requesting the link.">    const email = identity.email;</span>
+<span class="code-line"></span>
+<span class="code-line critical-line" data-explanation="The application searches for an existing local account using only the supplied email. A matching email does not prove that the external identity belongs to that account owner.">    const existingUser = findUserByEmail(email);</span>
+<span class="code-line"></span>
+<span class="code-line">    if (existingUser) {</span>
+<span class="code-line critical-line" data-explanation="This is the dangerous operation: the application attaches the external subject to the existing user's account without requiring that user to authenticate or approve the linking.">        existingUser.providerId = identity.subject;</span>
+<span class="code-line"></span>
+<span class="code-line">        return "Account linked";</span>
+<span class="code-line">    }</span>
+<span class="code-line"></span>
+<span class="code-line">    return "User not found";</span>
+<span class="code-line">}</span></code></pre>
+                </div>
+
+                <p class="code-hint">Select a red-highlighted line to inspect the vulnerability.</p>
+            </article>
+
+            <article class="comparison-card fixed-card">
+                <div class="comparison-card-header">
+                    <div>
+                        <span class="code-label">AFTER FIX</span>
+                        <h3>Fixed Implementation</h3>
+                    </div>
+                    <span class="code-status">PROTECTED</span>
+                </div>
+
+                <div class="code-window">
+                    <div class="code-window-bar">
+                        <span>account-linking-fixed.js</span>
+                        <span>JavaScript</span>
+                    </div>
+                    <pre class="comparison-code"><code><span class="code-line">function linkAccount(user, identity) {</span>
+<span class="code-line fix-line" data-explanation="The person must first authenticate to the existing local account. This helps prove they control the account they want to link.">    if (!user.isAuthenticated) throw new Error("Login required");</span>
+<span class="code-line"></span>
+<span class="code-line fix-line" data-explanation="The application validates the identity response, including its signature, trusted issuer, and subject. In a real OIDC implementation, audience and expiration must also be validated.">    if (!identity.signatureValid ||
+        !identity.issuerTrusted ||
+        !identity.subject) {</span>
+<span class="code-line">        throw new Error("Invalid identity");</span>
+<span class="code-line">    }</span>
+<span class="code-line"></span>
+<span class="code-line fix-line" data-explanation="Because this example relies on the email claim, it must be verified by the identity provider. A valid token signature alone does not prove email ownership.">    if (!identity.emailVerified) {
+        throw new Error("Email not verified");
+    }</span>
+<span class="code-line"></span>
+<span class="code-line fix-line" data-explanation="The existing account owner must explicitly approve the linking operation. This prevents an external identity from being attached without the owner's permission.">    if (!user.confirmedLinking) {
+        throw new Error("Approval required");
+    }</span>
+<span class="code-line"></span>
+<span class="code-line fix-line" data-explanation="The external identity is stored using issuer and subject together. This is the stable OIDC identity pair, rather than relying on email as the identity identifier.">    saveIdentity(user.id, {
+        issuer: identity.issuer,
+        subject: identity.subject
+    });</span>
+<span class="code-line"></span>
+<span class="code-line">    return "Account linked safely";</span>
+<span class="code-line">}</span></code></pre>
+                </div>
+
+                <p class="code-hint">Select a green-highlighted line to understand the fix.</p>
+            </article>
+
+        </div>
+
+        <div class="code-explanation" id="codeExplanation">
+            <span class="lab-label">CODE ANALYSIS</span>
+            <h3 id="codeExplanationTitle">Select a highlighted line</h3>
+            <p id="codeExplanationText">
+                Click any highlighted line in either implementation to understand why it matters.
+            </p>
+        </div>
+
+    </section>
+
+
+    <!-- IMPACT -->
+
+    <section class="lab-section">
+        <h2>04. Impact</h2>
+
+        <p>
+            Improper account linking may allow an attacker to associate
+            an external identity with another user's account.
+            Depending on the application's authentication design,
+            this can lead to unauthorized account access,
+            account takeover, and exposure of private information.
+        </p>
+    </section>
+
+
+    <!-- FIX EXPLANATION -->
+
+    <section class="lab-section">
+        <h2>05. Security Recommendations</h2>
+
+        <ul class="oauth-recommendations">
+            <li>Require the user to authenticate to the existing account before linking another identity.</li>
+            <li>Require explicit user confirmation before completing the linking operation.</li>
+            <li>Validate the identity token, including its signature, issuer, audience, and expiration.</li>
+            <li>Use the trusted combination of issuer and subject as the external identity identifier.</li>
+            <li>Do not rely on an email address alone to identify or link an account.</li>
+            <li>When email is used, verify that the identity provider confirms email ownership.</li>
+        </ul>
+    </section>
+
+
+
+
+ <!-- KNOWLEDGE CHECK -->
+
+    <section class="lab-section" id="oauthKnowledgeCheck">
+        <span class="lab-label">TEST YOUR KNOWLEDGE</span>
+        <h2>06. Knowledge Check</h2>
+
+        <p>
+            Test your understanding of OAuth Account Linking Flaws.
+        </p>
+
+        <div class="quiz-container oauth-quiz" id="oauthQuiz">
+            <div class="oauth-quiz-placeholder">
+                Knowledge Check will be available soon.
+            </div>
+        </div>
+    </section>
+
+    <!-- REFERENCES -->
+
+    <section class="lab-section">
+        <h2>07. References</h2>
+
+        <ul>
+            <li>
+                <a href="https://portswigger.net/web-security/oauth"
+                   target="_blank" rel="noopener noreferrer">
+                    PortSwigger - OAuth Authentication
+                </a>
+            </li>
+
+            <li>
+                <a href="https://openid.net/specs/openid-connect-core-1_0.html"
+                   target="_blank" rel="noopener noreferrer">
+                    OpenID Connect Core 1.0
+                </a>
+            </li>
+
+            <li>
+                <a href="https://cwe.mitre.org/data/definitions/287.html"
+                   target="_blank" rel="noopener noreferrer">
+                    MITRE - CWE-287: Improper Authentication
+                </a>
+            </li>
+        </ul>
+    </section>
+
+</main>
+
+<footer class="footer">
+    <a href="../index.html" class="logo">
+        <span class="logo-mark">G</span>
+        GHURIR<span class="logo-dot">.</span>
+    </a>
+
+    <p>GHURIR Security Sandbox · Learn. Simulate. Secure.</p>
+</footer>
+
+<script src="../js/oauth-linking.js"></script>
+
+</body>
+</html>
+
+
+
+
+
+
+
