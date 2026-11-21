@@ -20,10 +20,15 @@
     };
 
     const identity = {
-        email: "victim@example.com",
-        emailVerified: false,
-        issuer: "https://identity.example",
-        subject: "external-user-123",
+        provider: "Google",
+        issuer: "https://accounts.google.com",
+        subject: "attacker-google-123",
+        owner: "Attacker",
+        authorizationCode: "attacker-auth-code",
+        state: "attacker-state",
+        sessionOwner: "Attacker",
+        stateValid: true,
+        sessionBound: false,
         signatureValid: true,
         issuerTrusted: true
     };
@@ -71,16 +76,28 @@
             state.linked ? "External identity linked" : "Account not linked";
 
         $("externalIdentityStatus").textContent =
-            identity.emailVerified ? "Email verified" : "Unverified identity";
+            `Owned by ${identity.owner}`;
 
-        $("claimEmail").textContent = identity.email;
+        $("claimEmail").textContent = identity.subject;
         $("claimVerified").textContent =
-            String(identity.emailVerified);
+            identity.sessionBound ? "BOUND TO VICTIM SESSION" : "NOT BOUND TO VICTIM SESSION";
 
-        $("externalEmail").textContent = identity.email;
+        $("externalEmail").textContent =
+            `${identity.provider} identity: ${identity.owner}`;
 
-        $("oauthResultStatus").textContent =
-            state.linked ? "LINKED" : "WAITING";
+        const resultStatus = $("oauthResultStatus");
+
+        resultStatus.textContent = state.linked
+            ? "COMPROMISED"
+            : state.mode === "fixed" && state.simulationFinished
+                ? "PROTECTED"
+                : "WAITING";
+
+        resultStatus.style.color = state.linked
+            ? "#ff647c"
+            : state.mode === "fixed" && state.simulationFinished
+                ? "#00ff9c"
+                : "";
     }
 
     function clearLogs() {
@@ -109,7 +126,7 @@
         renderStatus();
 
         log("OAuth Account Linking simulator initialized.");
-        log("The external identity contains an unverified email.");
+        log("The attacker controls an external Google identity.");
         log("Select a mode and simulate the linking attempt.");
     }
 
@@ -139,67 +156,79 @@
 
         const vulnerableSteps = [
             {
-                title: "1. The attacker starts account linking",
-                description: "The attacker begins linking an external identity. The identity belongs to the attacker, but it presents the victim's email address.",
-                detail: "External subject: external-user-123",
-                log: "Attacker starts an external account-linking request."
+                title: "1. The attacker starts OAuth linking",
+                description: "The attacker signs in to their own GHURIR account and starts linking their personal Google identity.",
+                detail: "Google subject: attacker-google-123",
+                log: "Attacker initiates Google account linking from their own account."
             },
             {
-                title: "2. The identity provider returns claims",
-                description: "The provider returns a signed identity response. Notice that the signature is valid, but the email_verified claim is false.",
-                detail: "email = victim@example.com | email_verified = false",
-                log: "Provider returned a validly signed identity with an unverified email."
+                title: "2. Google returns an authorization code",
+                description: "Google authenticates the attacker and returns an authorization code associated with the attacker's Google identity.",
+                detail: "code = attacker-auth-code",
+                log: "Google returns an authorization code for the attacker's identity."
             },
             {
-                title: "3. The application searches by email",
-                description: "The vulnerable application uses the email claim to find a local account. It finds the victim's existing account.",
-                detail: "findUserByEmail(identity.email)",
-                log: "Application finds the victim account using the email address."
+                title: "3. The victim has an active session",
+                description: "The victim is signed in to GHURIR. The attacker causes the victim's browser to submit the attacker's linking callback while the victim's session is active.",
+                detail: "Current application session: Victim",
+                log: "Victim has an active GHURIR session."
             },
             {
-                title: "4. The application skips ownership checks",
-                description: "This is the security mistake: the application does not require proof that the person linking the identity controls the existing account.",
-                detail: "Missing: verified email + existing-account authentication + owner approval",
-                log: "Application skips email ownership and account-owner authorization checks."
+                title: "4. The application fails to validate state",
+                description: "The callback contains the attacker's authorization response, but the application does not verify that its state belongs to a linking transaction initiated by the victim's session.",
+                detail: "Expected: victim-session-bound state | Received: attacker-state",
+                log: "VULNERABILITY: OAuth state is not bound to the initiating user session."
             },
             {
-                title: "5. The attacker's identity is linked",
-                description: "The application associates the attacker's external subject with the victim's local account. The victim did not approve this action.",
-                detail: "Victim account  ←  external-user-123",
-                log: "VULNERABILITY: Attacker-controlled identity linked to victim account."
+                title: "5. The attacker's identity is linked to the victim",
+                description: "The application redeems the code and associates the returned Google identity with the currently signed-in victim account instead of the account that initiated the linking transaction.",
+                detail: "Victim account ← attacker-google-123",
+                log: "VULNERABILITY: Attacker-controlled Google identity linked to victim account."
             },
             {
-                title: "6. Potential security impact",
-                description: "If future sign-ins trust this linked external identity, the attacker may be able to access the victim's account. The exact impact depends on the application's login design.",
-                detail: "Potential impact: unauthorized account access",
-                log: "Potential account compromise if future login trusts the linked identity."
+                title: "6. Potential account takeover",
+                description: "The attacker may later sign in using their own Google identity and reach the victim's GHURIR account if the application trusts the linked identity.",
+                detail: "Potential impact: unauthorized victim account access",
+                log: "Potential account compromise through the incorrectly linked external identity."
             }
         ];
 
         const fixedSteps = [
             {
-                title: "1. The attacker starts account linking",
-                description: "An external identity tries to link to the victim's existing local account.",
-                detail: "External subject: external-user-123",
-                log: "Account-linking request received."
+                title: "1. The attacker starts OAuth linking",
+                description: "The attacker initiates a Google linking transaction from their own GHURIR account.",
+                detail: "Initiating account: Attacker",
+                log: "Attacker initiates an OAuth linking transaction."
             },
             {
-                title: "2. The provider returns identity claims",
-                description: "The token signature is valid, but the email address is explicitly marked as unverified.",
-                detail: "signature = VALID | email_verified = false",
-                log: "Identity response received. Signature is valid; email is unverified."
+                title: "2. The application creates a secure state",
+                description: "The application generates a random, single-use state value and stores it with the initiating session and pending linking transaction.",
+                detail: "state = random + single-use + session-bound",
+                log: "Application stores a session-bound state value for the linking transaction."
             },
             {
-                title: "3. The application validates the identity",
-                description: "The fixed implementation checks the identity response. A valid signature proves the response's integrity, not ownership of the email address.",
-                detail: "Signature and trusted issuer checks passed.",
-                log: "Signature and issuer checks passed."
+                title: "3. The victim has a different active session",
+                description: "The victim is signed in to GHURIR, but did not initiate the attacker's OAuth linking transaction.",
+                detail: "Current session: Victim | Initiating session: Attacker",
+                log: "Victim session does not own the pending OAuth transaction."
             },
             {
-                title: "4. The application rejects the linking attempt",
-                description: "The application refuses to use an unverified email to link an external identity to an existing account.",
-                detail: "REJECTED: email_verified = false",
-                log: "SECURE: Email ownership is not verified. Account linking rejected."
+                title: "4. The attacker callback is submitted",
+                description: "The attacker attempts to make the victim's browser submit the authorization response from the attacker's linking transaction.",
+                detail: "Callback state does not match victim session",
+                log: "Application receives an OAuth callback in the victim's session."
+            },
+            {
+                title: "5. The application rejects the callback",
+                description: "The application checks the returned state against the pending transaction stored for the current session. The validation fails, so the code is not accepted for linking.",
+                detail: "REJECTED: state/session binding mismatch",
+                log: "SECURE: OAuth state does not belong to the victim's session. Linking rejected."
+            },
+            {
+                title: "6. The victim's account remains protected",
+                description: "No external identity is linked to the victim's account. The attacker must complete a new linking transaction within their own authenticated session.",
+                detail: "Victim account: PROTECTED | External identity: NOT LINKED",
+                log: "No account association was created. The victim's account remains protected."
             }
         ];
 
@@ -215,7 +244,7 @@
         }
 
         state.simulationStep++;
-        log(current.log, state.mode === "fixed" && state.simulationStep === 4
+        log(current.log, state.mode === "fixed" && state.simulationStep === 5
             ? "success"
             : "info");
 
@@ -239,7 +268,7 @@
             state.simulationFinished = true;
         }
 
-        if (state.mode === "fixed" && state.simulationStep === 4) {
+        if (state.mode === "fixed" && state.simulationStep === 5) {
             state.simulationFinished = true;
             log("No external identity was linked. The victim's account remains protected.", "success");
         }
@@ -266,165 +295,154 @@
             {
                 label: "STEP 1 - VICTIM ACCOUNT",
                 title: "The Victim Has an Existing Account",
-                description: "A legitimate user already has an active GHURIR account. No external identity is linked yet.",
+                description: "The victim has an active GHURIR account and is currently signed in. No external Google identity is linked to this account.",
                 details: `EXISTING ACCOUNT
 User: Victim
-Email: victim@example.com
-Status: Active
-External identity: Not linked
+Session: Active
+Provider: None linked
 
 The victim owns this local application account.`
             },
             {
                 label: "STEP 2 - ATTACKER IDENTITY",
-                title: "The Attacker Starts External Linking",
-                description: "The attacker controls an external identity but presents the victim's email as an unverified claim.",
-                details: `ATTACKER EXTERNAL IDENTITY
-Subject: external-user-123
-Email: victim@example.com
-Email verified: false
+                title: "The Attacker Owns a Google Identity",
+                description: "The attacker controls their own Google identity and starts an account-linking transaction from their GHURIR account.",
+                details: `ATTACKER IDENTITY
+Provider: Google
+Issuer: https://accounts.google.com
+Subject: attacker-google-123
 
-The external subject belongs to the attacker.
-The email claim does not prove ownership.`
+The external identity belongs to the attacker.`
             },
             {
-                label: "STEP 3 - IDENTITY PROVIDER",
-                title: "The Provider Returns Identity Claims",
-                description: "The provider returns a valid signed identity response. However, the email ownership is not verified.",
-                details: `IDENTITY RESPONSE
-Issuer: https://identity.example
-Subject: external-user-123
-Email: victim@example.com
-Email verified: false
-Signature: VALID
+                label: "STEP 3 - AUTHORIZATION RESPONSE",
+                title: "Google Returns an Authorization Code",
+                description: "After authenticating the attacker, Google returns an authorization code associated with the attacker's linking transaction.",
+                details: `OAUTH RESPONSE
+Authorization code: attacker-auth-code
+OAuth state: attacker-state
+Identity owner: Attacker
 
-A valid signature proves the response's integrity.
-It does not prove ownership of the email.`
+The response belongs to the attacker's transaction.`
             },
             {
-                label: "STEP 4 - ACCOUNT LOOKUP",
-                title: "The Application Finds the Victim",
-                description: "The vulnerable application searches for a local account using only the supplied email address.",
-                details: `VULNERABLE APPLICATION
-existingUser = findUserByEmail(identity.email)
+                label: "STEP 4 - SESSION CONFUSION",
+                title: "The Victim's Browser Submits the Callback",
+                description: "The attacker causes the victim's browser to submit the attacker's OAuth callback while the victim is signed in. The application fails to verify that the returned state belongs to the victim's session.",
+                details: `CURRENT APPLICATION SESSION
+User: Victim
 
-Search result:
-victim@example.com -> Victim account found
+CALLBACK TRANSACTION
+Initiated by: Attacker
+Returned state: attacker-state
 
-The application does not check:
-- Whether the email is verified
-- Whether the victim authenticated
-- Whether the victim approved linking`
+Missing check:
+Does this state belong to the victim's session?`
             },
             {
-                label: "STEP 5 - UNSAFE LINKING",
-                title: "The Wrong Identity Gets Linked",
-                description: "The application associates the attacker's external subject with the victim's local account without the victim's permission.",
+                label: "STEP 5 - UNAUTHORIZED LINKING",
+                title: "The Attacker's Identity Is Linked to the Victim",
+                description: "The application accepts the callback and associates the attacker's Google identity with whichever local account is currently signed in: the victim's account.",
                 details: `SIMULATED DATABASE UPDATE
-Local user: Victim
-Local email: victim@example.com
-Provider: identity.example
-Provider subject: external-user-123
+Local account: Victim
+Provider: Google
+Provider subject: attacker-google-123
 
 The attacker's external identity is now
 linked to the victim's account.`
             },
             {
                 label: "STEP 6 - SECURITY IMPACT",
-                title: "Potential Unauthorized Account Access",
-                description: "If future sign-ins trust this linked identity, the attacker may gain access to the victim's account. The exact impact depends on the application's login design.",
+                title: "Potential Account Takeover",
+                description: "The attacker may later authenticate using their own Google identity and access the victim's account if the application trusts the incorrectly linked identity.",
                 details: `SIMULATED IMPACT
-External identity: Linked incorrectly
-Victim account: Affected
-Potential result: Account compromise
+External identity: Linked to Victim
+Identity owner: Attacker
+Victim account: Compromised
 
 PREVENTION
-1. Validate token signature, issuer, audience and expiry.
-2. Identify external users by issuer + subject.
-3. Verify email ownership when relying on email.
-4. Require authentication to the existing account.
-5. Require explicit owner approval.`
+1. Generate a random, single-use OAuth state.
+2. Bind state to the initiating browser session.
+3. Validate state before accepting the callback.
+4. Verify the pending linking transaction.
+5. Require account-owner authorization.`
             }
         ];
 
         const fixedSteps = [
             {
-                label: "STEP 1 - EXISTING ACCOUNT",
-                title: "The Victim's Account Is Protected",
-                description: "The victim already has an active local account. The application must not link another identity without authorization.",
+                label: "STEP 1 - VICTIM ACCOUNT",
+                title: "The Victim Has an Existing Account",
+                description: "The victim is signed in to GHURIR. The application keeps the victim's account separate from any external linking transaction that another user initiated.",
                 details: `EXISTING ACCOUNT
 User: Victim
-Email: victim@example.com
-Status: Active
+Session: Active
 External identity: Not linked
 
-The account owner must authorize any new link.`
+The victim's session is independent.`
             },
             {
-                label: "STEP 2 - LINKING REQUEST",
-                title: "An External Identity Requests Linking",
-                description: "An attacker-controlled external identity attempts to link itself to the victim's account using the victim's email address.",
-                details: `LINKING REQUEST
-External subject: external-user-123
-Claimed email: victim@example.com
+                label: "STEP 2 - ATTACKER IDENTITY",
+                title: "The Attacker Starts Google Linking",
+                description: "The attacker initiates a Google account-linking transaction from their own GHURIR account.",
+                details: `LINKING TRANSACTION
+Initiating user: Attacker
+Provider: Google
+Subject: attacker-google-123
 
-The application treats this as an untrusted
-linking request until validation is complete.`
+The transaction belongs to the attacker's session.`
             },
             {
-                label: "STEP 3 - IDENTITY RESPONSE",
-                title: "The Provider Returns Signed Claims",
-                description: "The identity provider returns a valid signed response, but the email_verified claim is false.",
-                details: `IDENTITY RESPONSE
-Issuer: https://identity.example
-Subject: external-user-123
-Email: victim@example.com
-Email verified: false
-Signature: VALID
+                label: "STEP 3 - SESSION-BOUND STATE",
+                title: "The Application Creates a Secure State",
+                description: "The application generates a random, single-use state value and stores it with the initiating user's session and pending linking transaction.",
+                details: `SECURE OAUTH STATE
+Random: YES
+Single-use: YES
+Bound session: Attacker
+Pending transaction: Stored
 
-A valid signature does not prove email ownership.`
+The state is associated with the session
+that initiated the linking process.`
             },
             {
-                label: "STEP 4 - IDENTITY VALIDATION",
-                title: "The Application Validates the Identity",
-                description: "The fixed implementation validates the token signature and trusted issuer, and checks the external identity using issuer and subject.",
-                details: `SECURITY VALIDATION
-Signature: VALID
-Issuer: TRUSTED
-Subject: PRESENT
+                label: "STEP 4 - CALLBACK VALIDATION",
+                title: "The Victim's Session Cannot Reuse the Callback",
+                description: "The attacker attempts to submit their callback through the victim's active browser session. The application checks the returned state against the transaction stored for the current session.",
+                details: `CURRENT SESSION: Victim
+CALLBACK TRANSACTION: Attacker
 
-These checks establish that the identity
-response is authentic and identify its issuer
-and subject. They do not verify email ownership.`
+State/session match: FAILED
+
+The victim does not own this pending
+OAuth linking transaction.`
             },
             {
-                label: "STEP 5 - OWNERSHIP CHECK",
-                title: "The Application Rejects the Unverified Email",
-                description: "The application refuses to use an unverified email to associate an external identity with an existing local account.",
-                details: `ACCOUNT-LINKING CHECK
-email_verified = false
+                label: "STEP 5 - LINKING REJECTED",
+                title: "The Application Rejects the Callback",
+                description: "Because the state does not match the pending transaction for the victim's session, the application rejects the callback and does not associate the external identity.",
+                details: `VALIDATION RESULT
+State: INVALID FOR THIS SESSION
+Authorization code: NOT ACCEPTED FOR LINKING
+Account update: BLOCKED
 
-RESULT: REJECTED
-
-The application must also require:
-- Authentication to the existing account
-- Explicit approval from the account owner`
+No external identity is linked.`
             },
             {
                 label: "STEP 6 - SECURE OUTCOME",
                 title: "The Victim's Account Remains Protected",
-                description: "No external identity is linked. The attacker cannot use this unverified email claim to associate their identity with the victim's account.",
+                description: "The victim's account remains unchanged. The attacker can only complete the linking process within the attacker's own authenticated session and valid OAuth transaction.",
                 details: `SECURE RESULT
-External identity: NOT LINKED
 Victim account: PROTECTED
-Linking request: REJECTED
+Attacker identity: NOT LINKED TO VICTIM
+Unauthorized callback: REJECTED
 
-SECURE LINKING REQUIREMENTS
-1. Validate signature, issuer, audience and expiry.
-2. Identify external identities by issuer + subject.
-3. Verify email ownership when relying on email.
-4. Require authentication to the existing account.
-5. Require explicit owner approval.`
+PREVENTION
+1. Generate a random, single-use OAuth state.
+2. Bind state to the initiating browser session.
+3. Validate state before accepting the callback.
+4. Verify the pending linking transaction.
+5. Require account-owner authorization.`
             }
         ];
 
@@ -532,34 +550,34 @@ SECURE LINKING REQUIREMENTS
     function setupQuiz() {
         const questions = [
             {
-                question: "What is the main weakness in the vulnerable implementation?",
+                question: "What is the main purpose of the OAuth state parameter?",
                 options: [
-                    "It uses HTTPS.",
-                    "It links accounts using an email without proving ownership.",
-                    "It stores the user's display name."
+                    "To identify the user's email address.",
+                    "To protect the OAuth flow against forged or unrelated callbacks.",
+                    "To store the user's Google password."
                 ],
                 answer: 1,
-                explanation: "Correct! An email address alone is not sufficient proof that an external identity belongs to an existing account."
+                explanation: "Correct! The state parameter helps the application verify that the callback belongs to an OAuth transaction initiated by the user."
             },
             {
-                question: "What should be required before linking an external identity?",
+                question: "Why must OAuth state be bound to the initiating session?",
                 options: [
-                    "Authentication to the existing account and explicit approval.",
-                    "Only a matching email address.",
-                    "A new browser tab."
+                    "To ensure the callback belongs to the same session that started the linking process.",
+                    "To allow any user to complete the linking process.",
+                    "To avoid validating the authorization response."
                 ],
                 answer: 0,
-                explanation: "Correct! The existing account owner should authenticate and approve the linking operation."
+                explanation: "Correct! Session binding prevents an attacker from using their own OAuth callback to link an identity to another user's account."
             },
             {
-                question: "Which values are important for identifying an OIDC identity?",
+                question: "What should the application do when the callback state does not match the current session?",
                 options: [
-                    "Email and display name only.",
-                    "Browser version and IP address.",
-                    "Trusted issuer and subject."
+                    "Accept the callback anyway.",
+                    "Link the identity to the currently logged-in user.",
+                    "Reject the linking attempt."
                 ],
                 answer: 2,
-                explanation: "Correct! The issuer and subject together identify the identity within its trusted provider."
+                explanation: "Correct! A state or session mismatch means the callback does not belong to the current linking transaction, so the application must reject it."
             }
         ];
 
@@ -615,7 +633,7 @@ SECURE LINKING REQUIREMENTS
             progress.textContent =
                 `QUESTION ${currentQuestion + 1} / ${questions.length}`;
             scoreDisplay.textContent = `SCORE: ${score}`;
-            progressBar.style.width = "0%";
+            progressBar.style.width = `${(currentQuestion / questions.length) * 100}%`;
 
             questionTitle.textContent = item.question;
             optionsContainer.replaceChildren();

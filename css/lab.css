@@ -1029,11 +1029,12 @@
 
 .oauth-user-card,
 .oauth-provider-card {
-    padding: 20px;
+    padding: 12px 14px;
     text-align: center;
     border: 1px solid #263445;
     border-radius: 9px;
     background: #080d15;
+    min-height: 155px;
 }
 
 .oauth-user-card > span,
@@ -1044,16 +1045,16 @@
 
 .oauth-avatar,
 .oauth-provider-icon {
-    width: 48px;
-    height: 48px;
-    margin: 17px auto 12px;
+    width: 36px;
+    height: 36px;
+    margin: 10px auto 8px;
     display: grid;
     place-items: center;
     border-radius: 50%;
     background: #17352e;
     color: #00ff9c;
     font-weight: 900;
-    font-size: 18px;
+    font-size: 15px;
 }
 
 .oauth-provider-icon {
@@ -1077,7 +1078,7 @@
 .oauth-user-card small,
 .oauth-provider-card small {
     display: block;
-    margin-top: 13px;
+    margin-top: 8px;
     color: #8793a5;
     font-size: 10px;
 }
@@ -2597,4 +2598,57 @@
 #oauthQuiz #quizResult p {
     color: #94a3b8;
     font-size: 13px;
+}
+
+/* COMPACT OAUTH ACCOUNT CARDS */
+#oauthSimulation .oauth-scenario {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    margin: 14px 0 !important;
+    align-items: stretch;
+}
+
+.oauth-user-card,
+.oauth-provider-card {
+    min-width: 0;
+    min-height: 125px !important;
+    padding: 10px 8px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.oauth-avatar,
+.oauth-provider-icon {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px;
+    margin: 7px auto !important;
+    font-size: 13px !important;
+}
+
+.oauth-user-card h4,
+.oauth-provider-card h4 {
+    font-size: 12px !important;
+    margin: 3px 0 !important;
+}
+
+.oauth-user-card p,
+.oauth-provider-card p {
+    font-size: 10px !important;
+    margin: 2px 0 !important;
+}
+
+.oauth-user-card small,
+.oauth-provider-card small {
+    font-size: 9px !important;
+    margin-top: 5px !important;
+}
+
+@media (max-width: 520px) {
+    #oauthSimulation .oauth-scenario {
+        grid-template-columns: 1fr !important;
+    }
 }

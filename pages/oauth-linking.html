@@ -53,12 +53,13 @@
         <h2>01. Understanding the Vulnerability</h2>
 
         <div class="oauth-understanding-intro">
-            <h3>What is Account Linking?</h3>
+            <h3>What is OAuth Account Linking?</h3>
             <p>
-                Account linking allows users to connect an external identity,
-                such as Google, to an existing account. A vulnerability occurs
-                when the application links that identity without properly
-                verifying ownership and authorization.
+                OAuth account linking allows a user to connect an external
+                identity, such as Google, to an existing application account.
+                A vulnerability occurs when an application accepts an OAuth
+                linking response without ensuring that the person who started
+                the linking process is the same user whose account is being modified.
             </p>
         </div>
 
@@ -67,47 +68,52 @@
                 <span class="lab-label">THE VULNERABILITY SCENARIO</span>
                 <h3>How Does the Attack Happen?</h3>
                 <p>
-                    Consider an application that automatically links external
-                    identities based only on matching email addresses.
+                    Consider an application where a logged-in user can link
+                    an external Google identity to their account.
                 </p>
             </div>
 
             <div class="oauth-scenario-grid">
                 <article class="oauth-scenario-card">
                     <span class="scenario-number">01</span>
-                    <h4>Existing Victim Account</h4>
-                    <p>The victim already has an account in the application.</p>
-                    <code>victim@example.com</code>
+                    <h4>Attacker's Account</h4>
+                    <p>
+                        The attacker owns an account on the application and
+                        controls an external Google identity.
+                    </p>
+                    <code>attacker-google-id</code>
                 </article>
 
                 <article class="oauth-scenario-card">
                     <span class="scenario-number">02</span>
-                    <h4>Attacker's Identity</h4>
+                    <h4>Start Linking Process</h4>
                     <p>
-                        The attacker presents an external identity containing
-                        the victim's email address.
+                        The attacker initiates the OAuth linking process and
+                        receives an authorization response for their identity.
                     </p>
-                    <code>email_verified: false</code>
+                    <code>OAuth authorization code</code>
                 </article>
 
                 <article class="oauth-scenario-card">
                     <span class="scenario-number">03</span>
-                    <h4>Unsafe Account Lookup</h4>
+                    <h4>Victim's Active Session</h4>
                     <p>
-                        The application searches for an account using the
-                        email address alone.
+                        The victim is signed in to the application. The attacker
+                        tricks the victim's browser into submitting the attacker's
+                        linking response while the victim's session is active.
                     </p>
-                    <code>findUserByEmail(email)</code>
+                    <code>victim-session</code>
                 </article>
 
                 <article class="oauth-scenario-card scenario-danger">
                     <span class="scenario-number">04</span>
-                    <h4>Unauthorized Linking</h4>
+                    <h4>Unauthorized Account Linking</h4>
                     <p>
-                        The application links the attacker's external identity
-                        to the victim's account without the victim's approval.
+                        Without validating the OAuth transaction and binding it
+                        to the initiating session, the application links the
+                        attacker's external identity to the victim's account.
                     </p>
-                    <code>Account linked incorrectly</code>
+                    <code>Attacker identity → Victim account</code>
                 </article>
             </div>
         </div>
@@ -116,17 +122,21 @@
             <span class="lab-label">ROOT CAUSE</span>
             <h3>Why Does This Happen?</h3>
             <p>
-                The application treats a matching email address as proof
-                of ownership. However, the identity token can have a valid
-                signature while the email remains unverified. The application
-                must also require authentication to the existing account
-                and explicit approval from its owner.
+                The application does not properly verify that the OAuth linking
+                transaction belongs to the same user session that initiated it.
+                Missing or incorrectly validated state and session binding can
+                allow an attacker-controlled authorization response to be
+                associated with another user's active account. A secure
+                implementation must validate a random, single-use state value
+                bound to the initiating session before completing the link.
             </p>
         </div>
     </section>
 
 
     <!-- SIMULATION -->
+
+
 
     <section class="lab-section" id="oauthSimulation">
         <h2>02. Interactive Simulation</h2>
@@ -174,7 +184,7 @@
                     <span>EXTERNAL IDENTITY</span>
                     <div class="oauth-provider-icon">ID</div>
                     <h4>External Provider</h4>
-                    <p id="externalEmail">victim@example.com</p>
+                    <p id="externalEmail">Google identity: Attacker</p>
                     <small id="externalIdentityStatus">Unverified identity</small>
                 </div>
 
@@ -184,23 +194,23 @@
                 <h4>Simulated Identity Claims</h4>
 
                 <div class="oauth-claim">
-                    <label>Email</label>
-                    <code id="claimEmail">victim@example.com</code>
+                    <label>External Subject</label>
+                    <code id="claimEmail">attacker-google-123</code>
                 </div>
 
                 <div class="oauth-claim">
-                    <label>Email Verified</label>
-                    <code id="claimVerified">false</code>
+                    <label>Session Binding</label>
+                    <code id="claimVerified">NOT BOUND TO VICTIM SESSION</code>
                 </div>
 
                 <div class="oauth-claim">
-                    <label>Issuer</label>
-                    <code>https://identity.example</code>
+                    <label>Identity Provider</label>
+                    <code>https://accounts.google.com</code>
                 </div>
 
                 <div class="oauth-claim">
                     <label>Subject</label>
-                    <code>external-user-123</code>
+                    <code>attacker-google-123</code>
                 </div>
             </div>
 
@@ -342,9 +352,9 @@
         <h2>03. Vulnerable vs Fixed Implementation</h2>
 
         <p>
-            Compare an unsafe account-linking implementation
-            with a safer approach that verifies identity and
-            requires authorization from the existing account owner.
+            Compare an unsafe OAuth callback implementation with a secure
+            approach that validates state and binds the linking transaction
+            to the session that initiated it.
         </p>
 
         <div class="comparison-legend">
@@ -368,18 +378,15 @@
                         <span>account-linking.js</span>
                         <span>JavaScript</span>
                     </div>
-                    <pre class="comparison-code"><code><span class="code-line">function linkAccount(user, identity) {</span>
-<span class="code-line critical-line" data-explanation="The application takes the email claim from the external identity. At this point, the email has not been proven to belong to the person requesting the link.">    const email = identity.email;</span>
+                    <pre class="comparison-code"><code><span class="code-line">async function oauthCallback(req, session) {</span>
+<span class="code-line">    const code = req.query.code;</span>
+<span class="code-line critical-line" data-explanation="The application reads the authorization code but never validates the returned OAuth state against a pending transaction stored in the initiating session.">    const identity = await exchangeCode(code);</span>
 <span class="code-line"></span>
-<span class="code-line critical-line" data-explanation="The application searches for an existing local account using only the supplied email. A matching email does not prove that the external identity belongs to that account owner.">    const existingUser = findUserByEmail(email);</span>
+<span class="code-line critical-line" data-explanation="The application uses whichever user happens to be logged in when the callback arrives, instead of verifying which user initiated the linking transaction.">    const user = session.currentUser;</span>
 <span class="code-line"></span>
-<span class="code-line">    if (existingUser) {</span>
-<span class="code-line critical-line" data-explanation="This is the dangerous operation: the application attaches the external subject to the existing user's account without requiring that user to authenticate or approve the linking.">        existingUser.providerId = identity.subject;</span>
+<span class="code-line critical-line" data-explanation="This attaches the attacker's external identity to the victim's account when the victim's session receives the attacker's callback.">    await linkExternalIdentity(user.id, identity.iss, identity.sub);</span>
 <span class="code-line"></span>
-<span class="code-line">        return "Account linked";</span>
-<span class="code-line">    }</span>
-<span class="code-line"></span>
-<span class="code-line">    return "User not found";</span>
+<span class="code-line">    return "Account linked";</span>
 <span class="code-line">}</span></code></pre>
                 </div>
 
@@ -400,28 +407,17 @@
                         <span>account-linking-fixed.js</span>
                         <span>JavaScript</span>
                     </div>
-                    <pre class="comparison-code"><code><span class="code-line">function linkAccount(user, identity) {</span>
-<span class="code-line fix-line" data-explanation="The person must first authenticate to the existing local account. This helps prove they control the account they want to link.">    if (!user.isAuthenticated) throw new Error("Login required");</span>
+                    <pre class="comparison-code"><code><span class="code-line">async function oauthCallback(req, session) {</span>
+<span class="code-line">    const { code, state } = req.query;</span>
+<span class="code-line fix-line" data-explanation="The application retrieves the pending OAuth transaction stored in the current browser session. The transaction contains the expected state and the user who initiated linking.">    const pending = session.pendingOAuth;</span>
 <span class="code-line"></span>
-<span class="code-line fix-line" data-explanation="The application validates the identity response, including its signature, trusted issuer, and subject. In a real OIDC implementation, audience and expiration must also be validated.">    if (!identity.signatureValid ||
-        !identity.issuerTrusted ||
-        !identity.subject) {</span>
-<span class="code-line">        throw new Error("Invalid identity");</span>
+<span class="code-line fix-line" data-explanation="The callback is rejected unless the state matches the session-bound transaction, the transaction is unused, and the authenticated user is the original initiator.">    if (!pending || pending.used || state !== pending.state || pending.userId !== session.userId) {</span>
+<span class="code-line">        throw new Error("Invalid OAuth transaction");</span>
 <span class="code-line">    }</span>
 <span class="code-line"></span>
-<span class="code-line fix-line" data-explanation="Because this example relies on the email claim, it must be verified by the identity provider. A valid token signature alone does not prove email ownership.">    if (!identity.emailVerified) {
-        throw new Error("Email not verified");
-    }</span>
-<span class="code-line"></span>
-<span class="code-line fix-line" data-explanation="The existing account owner must explicitly approve the linking operation. This prevents an external identity from being attached without the owner's permission.">    if (!user.confirmedLinking) {
-        throw new Error("Approval required");
-    }</span>
-<span class="code-line"></span>
-<span class="code-line fix-line" data-explanation="The external identity is stored using issuer and subject together. This is the stable OIDC identity pair, rather than relying on email as the identity identifier.">    saveIdentity(user.id, {
-        issuer: identity.issuer,
-        subject: identity.subject
-    });</span>
-<span class="code-line"></span>
+<span class="code-line fix-line" data-explanation="The authorization code is redeemed only after the transaction checks pass. A real implementation should also validate the provider response and use PKCE where supported.">    const identity = await exchangeCode(code, pending.codeVerifier);</span>
+<span class="code-line fix-line" data-explanation="The identity is linked to the user recorded in the original pending transaction, not simply whichever account happens to be active during the callback.">    await linkExternalIdentity(pending.userId, identity.iss, identity.sub);</span>
+<span class="code-line">    delete session.pendingOAuth;</span>
 <span class="code-line">    return "Account linked safely";</span>
 <span class="code-line">}</span></code></pre>
                 </div>
@@ -463,12 +459,14 @@
         <h2>05. Security Recommendations</h2>
 
         <ul class="oauth-recommendations">
-            <li>Require the user to authenticate to the existing account before linking another identity.</li>
-            <li>Require explicit user confirmation before completing the linking operation.</li>
-            <li>Validate the identity token, including its signature, issuer, audience, and expiration.</li>
-            <li>Use the trusted combination of issuer and subject as the external identity identifier.</li>
-            <li>Do not rely on an email address alone to identify or link an account.</li>
-            <li>When email is used, verify that the identity provider confirms email ownership.</li>
+            <li>Generate a cryptographically random state value for every OAuth linking transaction.</li>
+            <li>Store the expected state value in the session that initiated the linking process.</li>
+            <li>Validate the returned state against the pending transaction before accepting the OAuth callback.</li>
+            <li>Reject callbacks with missing, invalid, expired, or previously used state values.</li>
+            <li>Bind every pending linking transaction to the authenticated user who initiated it.</li>
+            <li>Require explicit account-owner authorization before associating an external identity.</li>
+            <li>Use PKCE (S256) where supported to protect authorization-code redemption.</li>
+            <li>Validate the identity response, including signature, issuer, audience, and expiration.</li>
         </ul>
     </section>
 
@@ -516,6 +514,26 @@
                 <a href="https://cwe.mitre.org/data/definitions/287.html"
                    target="_blank" rel="noopener noreferrer">
                     MITRE - CWE-287: Improper Authentication
+                </a>
+            </li>
+            <li>
+                <a href="https://datatracker.ietf.org/doc/html/rfc6749"
+                   target="_blank" rel="noopener noreferrer">
+                    IETF - RFC 6749: OAuth 2.0 Authorization Framework
+                </a>
+            </li>
+
+            <li>
+                <a href="https://datatracker.ietf.org/doc/html/rfc7636"
+                   target="_blank" rel="noopener noreferrer">
+                    IETF - RFC 7636: Proof Key for Code Exchange (PKCE)
+                </a>
+            </li>
+
+            <li>
+                <a href="https://datatracker.ietf.org/doc/html/rfc9700"
+                   target="_blank" rel="noopener noreferrer">
+                    IETF - RFC 9700: OAuth 2.0 Security Best Current Practice
                 </a>
             </li>
         </ul>
